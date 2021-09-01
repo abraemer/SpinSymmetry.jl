@@ -41,7 +41,8 @@
 
         # order test
         for N in 2:10
-            @test order_test(Shift(N), N)
+            @test order_test(Flip(N), N)
+            @test order_test(Flip(div(N,2)), N)
         end
     end
 

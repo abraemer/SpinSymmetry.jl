@@ -1,5 +1,5 @@
 """
-    Shift <: AbstractSymmetry
+    Shift(N, [k=1])
 
 Shift operator. Optionally specify the distance to shift (default: 1).
 
@@ -21,9 +21,11 @@ _roll_bits(N, i, amount) = ((i & _mask(amount)) << (N-amount)) | (i >> amount)
 
 
 """
-    Flip <: AbstractSymmetry
+    Flip(positions)
+    Flip(system_size)
 
-Spin Flip operator on N spins. Optionally specify which spins to flip (default: all).
+Spin Flip operator on N spins. Either provide the specific locations to flip or the system's
+size to flip them all.
 
 # Fields
 - `mask::Int`: encodes the positions to flip in binary
@@ -47,7 +49,7 @@ _order(::Flip) = 2
 
 
 """
-    Swap <: AbstractSymmetry
+    Swap(pos1, pos2)
 
 Swaps the 2 specified spins.
 
@@ -74,7 +76,7 @@ end
 
 
 """
-    GenericSymmetry <: AbstractSymmetry
+    GenericSymmetry(f, L)
 
 Allows a user-defined symmetry. Just provide a function to transform a binary basis index
 and the order of the symmetry.

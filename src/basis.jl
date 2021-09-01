@@ -4,6 +4,7 @@ function _indices end
 
 struct FullZBasis <: ZBasis
     N::Int
+    FullZBasis(N) = N > 0 ? new(N) : throw(ArgumentError("N=$N needs to be a positive integer!"))
 end
 
 _indices(fzb::FullZBasis) = 1:2^fzb.N
@@ -11,7 +12,11 @@ _indices(fzb::FullZBasis) = 1:2^fzb.N
 struct ZBlockBasis <: ZBasis
     N::Int
     k::Int
-    ZBlockBasis(N, k) = (0 <= k) && (k <= N) ? new(N,k) : throw(ArgumentError("k=$k needs to be between 0 and $N."))
+    function ZBlockBasis(N, k)
+        N > 0 || throw(ArgumentError("N=$N needs to be a positive integer!"))
+        (0 <= k) && (k <= N) || throw(ArgumentError("k=$k needs to be between 0 and $N."))
+        return new(N,k)
+    end
 end
 
 function _indices(zbb::ZBlockBasis)
@@ -49,7 +54,7 @@ function _zblock_inds!(states, N, k)
 end
 
 struct SymmetrizedBasis
-    starting_indices
+    basis::ZBasis
     symmetries::Vector{AbstractSymmetry}
     sectors::Vector{Int}
 end
@@ -64,14 +69,20 @@ end
 
 function symmetrized_basis(zbasis::ZBasis, symmetry::AbstractSymmetry, sector::Int, more...)
     mod(length(more), 2) == 0 || ArgumentError("Odd number of arguments. Please provide 1 sector for each symmetry.")
-    SymmetrizedBasis(_indices(zbasis), [symmetry, more[1:2:end]...], [sector, more[2:2:end]...])
+    SymmetrizedBasis(zbasis, [symmetry, more[1:2:end]...], [sector, more[2:2:end]...])
 end
 
 
 symmetrize_state(state, args...) = symmetrize_state(state, symmetrized_basis(args...))
 
 function symmetrize_state(state, basis::SymmetrizedBasis)
-    factors = _phase_factors(basis.starting_indices, basis.symmetries, basis.sectors)
+    if length(state) != 2^basis.basis.N
+        throw(ArgumentError("""State has wrong size.
+            Expected $(2^basis.basis.N), got: $(length(state))"""))
+    end
+
+    inds = _indices(basis.basis)
+    factors = _phase_factors(inds, basis.symmetries, basis.sectors)
     result = Vector{ComplexF64}(undef, length(factors))
 
     for (i, component) in enumerate(factors)
@@ -87,7 +98,12 @@ end
 symmetrize_operator(operator, args...) = symmetrize_operator(operator, symmetrized_basis(args...))
 
 function symmetrize_operator(operator, basis::SymmetrizedBasis)
-    factors = _phase_factors(basis.starting_indices, basis.symmetries, basis.sectors)
+    if length(operator) != 4^basis.basis.N || size(operator, 1) != size(operator, 2)
+        throw(ArgumentError("""Operator has wrong size.
+            Expected $(2^basis.basis.N)x$(2^basis.basis.N), got: $(size(operator))"""))
+    end
+    inds = _indices(basis.basis)
+    factors = _phase_factors(inds, basis.symmetries, basis.sectors)
     result = Matrix{ComplexF64}(undef, length(factors), length(factors))
 
     for (j, component2) in enumerate(factors)
