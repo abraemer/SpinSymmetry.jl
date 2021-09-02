@@ -47,6 +47,9 @@ julia> @btime symm_op = symmetrize_operator(operator, basis)
 ```
 
 # Features
+- Use `symmetrized_basis` to construct a collection of your symmetries. Provide as the first argument the system's size (and optionally magnetizaion block) and then follow with symmetry operations and their sector alternating.
+- Apply the symmetries to a state or an operator using `symmetrize_state` and `symmetrize_operator`
+
 The symmetry operations supported are:
 - z-magnetization block (via `zbasis(N, k)`)
 - Spin flip via `Flip(positions)` or `Flip(N)`
@@ -62,10 +65,6 @@ Simply define a function `f` that maps one basis index to the next.
 Note that these basis indices are a binary representation of the spin basis where the first spin is represented by the *least* significant bit.
 Then you can use `GenericSymmetry(f, L)` where `L` denotes the order of your symmtry.
 The order is the smallest number `L` s. t. `f` applied `L` is the identity for all indices.
-
-## Other functions
-- Use `symmetrized_basis` to construct a collection of your symmetries
-- If you only need them once, you can pass them to `symmetrize_state` and `symmetrize_operator` directly (instead of the `SymmetrizedBasis` object).
 
 # Implementation details
 Imagine all basis vectors as the vertices of a graph and the symmetries generate
