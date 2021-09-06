@@ -6,9 +6,11 @@
 
 Transform your spin system to a symmetry sector of your choice!
 
+SpinSymmetry.jl is a light-weight, reasonably fast package with no dependencies. Some commonly used symmetries are implemented, there's support for user-defined symmetries and every symmetry can be combined!
+
 # Install
 ```julia
-julia> Pkg.add(url="https://github.com/abraemer/SpinSymmetry.jl")
+julia> Pkg.add("SpinSymmetry")
 ```
 
 # Usage
