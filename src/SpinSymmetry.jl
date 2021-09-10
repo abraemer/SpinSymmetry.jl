@@ -1,6 +1,6 @@
 module SpinSymmetry
 
-export Flip, Shift, Swap, GenericSymmetry
+export Flip, Shift, Swap, SpatialReflection, GenericSymmetry
 export zbasis, FullZBasis, ZBlockBasis
 export SymmetrizedBasis, symmetrized_basis, symmetrize_state, symmetrize_operator
 
