@@ -1,7 +1,7 @@
 module SpinSymmetry
 
-export Flip, Shift, Swap, GenericSymmetry
-export zbasis, FullZBasis, ZBlockBasis
+export Flip, Shift, Swap, SpatialReflection, GenericSymmetry
+export zbasis, FullZBasis, ZBlockBasis, basissize
 export SymmetrizedBasis, symmetrized_basis, symmetrize_state, symmetrize_operator
 
 include("abstract.jl")

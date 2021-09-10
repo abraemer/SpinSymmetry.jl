@@ -1,7 +1,7 @@
 name = "SpinSymmetry"
 uuid = "ebcc8a00-959b-4e58-a088-282ffd8a4f25"
 authors = ["Adrian Braemer <11058200+abraemer@users.noreply.github.com> and contributors"]
-version = "0.1.0"
+version = "0.2.0"
 
 [compat]
 julia = "1.6"

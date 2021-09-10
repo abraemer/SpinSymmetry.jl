@@ -23,6 +23,11 @@
         # small correctness test
         @test Shift(2).(0:3) == [0,2,1,3]
 
+        # injectivity test
+        for k in 0:9
+            @test length(Set(Shift(10, k).(0:2^10-1))) == 2^10
+        end
+
         # order test
         for N in 2:10
             for amount in 1:div(N,2)
@@ -39,6 +44,10 @@
         @test Flip(2).(0:3) == [3,2,1,0]
         @test Flip([1,2]).(0:7) == vcat([3,2,1,0], 4 .+ [3,2,1,0])
 
+        # injectivity test
+        @test length(Set(Flip(10).(0:2^10-1))) == 2^10
+        @test length(Set(Flip(2:2:10).(0:2^10-1))) == 2^10
+
         # order test
         for N in 2:10
             @test order_test(Flip(N), N)
@@ -51,6 +60,11 @@
         @test Swap(1,2).(0:3) == [0,2,1,3]
         @test Swap(2,2).(0:31) == 0:31 # identity
 
+        # injectivity test
+        for (p1,p2) in [(1,2), (3,4), (1,4), (9,6), (1,9), (5,5), (3,7)]
+            @test length(Set(Swap(p1, p2).(0:2^10-1))) == 2^10
+        end
+
         # order test
         for N in 3:2:16
             pos1 = round(Int, N/4)
@@ -58,6 +72,20 @@
             @test order_test(Swap(pos1,pos2), N)
             @test order_test(Swap(1,N), N)
             @test Swap(pos1,pos2).(0:2^N-1) == Swap(pos2,pos1).(0:2^N-1)
+        end
+    end
+
+    @testset "SpatialReflection" begin
+        # small correctness test
+        @test SpatialReflection(2).(0:3) == [0,2,1,3]
+
+        # injectivity test
+        @test length(Set(SpatialReflection(10).(0:2^10-1))) == 2^10
+
+        # order test
+        for N in 4:12
+            @test order_test(SpatialReflection(N), N)
+            @test order_test(SpatialReflection(div(N,2)), N)
         end
     end
 

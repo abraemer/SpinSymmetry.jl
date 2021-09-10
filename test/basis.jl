@@ -1,15 +1,46 @@
 @testset "basis.jl" begin
     @testset "ZBasis" begin
-        @test_throws ArgumentError zbasis(-1)
-        @test SpinSymmetry._indices(zbasis(5)) == 1:2^5
+        @testset "FullZBasis" begin
+            @test_throws ArgumentError zbasis(-1)
+            @test zbasis(5) isa FullZBasis
+            @test SpinSymmetry._indices(zbasis(5)) == 1:2^5
+        end
 
-        @test_throws ArgumentError zbasis(-1, 0)
-        @test_throws ArgumentError zbasis(2,-1)
-        @test_throws ArgumentError zbasis(2,3)
+        @testset "ZBlockBasis" begin
+            @test_throws ArgumentError zbasis(-1, 0)
+            @test_throws ArgumentError zbasis(2,-1)
+            @test_throws ArgumentError zbasis(2,3)
 
-        @test SpinSymmetry._indices(zbasis(2,0)) == [1]
-        @test SpinSymmetry._indices(zbasis(2,1)) == [2,3]
-        @test SpinSymmetry._indices(zbasis(2,2)) == [4]
+            @test zbasis(2,1) isa ZBlockBasis
+
+            # small correctness check
+            @test SpinSymmetry._indices(zbasis(2,0)) == [1]
+            @test SpinSymmetry._indices(zbasis(2,1)) == [2,3]
+            @test SpinSymmetry._indices(zbasis(2,2)) == [4]
+
+
+            digitsum(k) = sum(parse.(Int, [string(k-1; base=2)...]))
+            for k in 0:10
+                zblock = zbasis(10, k)
+                @test all(digitsum.(SpinSymmetry._indices(zblock)) .== k)
+            end
+        end
+    end
+
+    @testset "basissize" begin
+        let basis = zbasis(10)
+            @test basissize(basis) == length(SpinSymmetry._indices(basis))
+        end
+
+        for k in 0:10
+            let basis = zbasis(10, k)
+                @test basissize(basis) == length(SpinSymmetry._indices(basis))
+            end
+        end
+
+        @test basissize(symmetrized_basis(10, Flip(10), 0)) == 2^9
+        @test basissize(symmetrized_basis(10, 5,  Flip(10), 0)) == binomial(10, 5)/2
+        @test basissize(symmetrized_basis(10, 4,  Flip(10), 0)) == binomial(10, 4)
     end
 
     @testset "symmetrize stuff" begin

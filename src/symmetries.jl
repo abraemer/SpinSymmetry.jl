@@ -61,6 +61,10 @@ Positions should be given in the range 1:N.
 struct Swap <: AbstractSymmetry
     ind1::Int
     ind2::Int
+    function Swap(pos1, pos2)
+        pos1 == pos2 && @warn "Swap with identical positions is nonsensical and won't work properly!"
+        new(pos1, pos2)
+    end
 end
 
 _order(::Swap) = 2
@@ -68,12 +72,42 @@ _order(::Swap) = 2
 function _swap_bits(x, ind1, ind2)
     # compare bits, swap if unequal
     sw = ((x >> ind1) & 1) ⊻ ((x >> ind2) & 1) # xor == 1 if unequal
-    xor(x, (sw << ind1) | (sw << ind2)) # x(bit, 1) -> flips bit
+    return xor(x, (sw << ind1) | (sw << ind2)) # xor(bit, 1) -> flips bit
 end
 
 # convert spin positions to bitstring position
 (s::Swap)(index) = _swap_bits(index, s.ind1-1, s.ind2-1)
 
+"""
+    SpatialReflection(N)
+
+Reflects the whole chain in space.
+
+# Fields
+- `N::Int`: Number of spins
+"""
+struct SpatialReflection <: AbstractSymmetry
+    N::Int
+    function SpatialReflection(N)
+        N == 1 && @warn "SpatialReflection with N=1 is nonsensical and won't work properly!"
+        new(N)
+    end
+end
+
+_order(::SpatialReflection) = 2
+
+# approx 10times faster than the simpler
+# parse(Int, string(x; base=2, pad=N)[N:-1:1]; base=2)
+# Also note that the former does not account for cases where there are actually more than N
+# spins
+function _reflect_bits(N, bits)
+    for i in 0:div(N,2)-1
+        bits = _swap_bits(bits, i, N-1-i)
+    end
+    return bits
+end
+
+(sr::SpatialReflection)(index) = _reflect_bits(sr.N, index)
 
 """
     GenericSymmetry(f, L)

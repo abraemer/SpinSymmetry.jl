@@ -51,22 +51,31 @@ julia> @btime symm_op = symmetrize_operator(operator, basis)
 # Features
 - Use `symmetrized_basis` to construct a collection of your symmetries. Provide as the first argument the system's size (and optionally magnetizaion block) and then follow with symmetry operations and their sector alternating.
 - Apply the symmetries to a state or an operator using `symmetrize_state` and `symmetrize_operator`
+- Find the size of the symmetry sector with `basissize`
 
 The symmetry operations supported are:
 - z-magnetization block (via `zbasis(N, k)`)
 - Spin flip via `Flip(positions)` or `Flip(N)`
 - Shift symmetry via `Shift(N, amount=1)`
 - Swap/Exchange symmetry via `Swap(pos1, pos2)`
+- Spatial reflection via `SpatialReflection(N)`
 
 where `N` denotes the number of spins in the system and their positions should be given as a Julian index, i.e. in the range `1:N`.
 
-**Note:** The projection on a specific magnetization block is applied first. Thus if you have spin flip symmetry and restrict to a magnetization block, your symmetrized basis states look like "|↑..↑⟩ ± |↓..↑⟩".
+**Note:** The projection on a specific magnetization block is applied first. Thus if you have spin flip symmetry and restrict to a magnetization block, your symmetrized basis states look like "|↑..↑⟩ ± |↓..↑⟩". So in this case you effectively specified S_z^2 and parity.
 
+## User-defined symmetries
 It's also quite easy to define your own symmetry operations. 
 Simply define a function `f` that maps one basis index to the next.
-Note that these basis indices are a binary representation of the spin basis where the first spin is represented by the *least* significant bit.
+Note that these basis indices are a binary representation (range 0:2^N-1) of the spin basis where the first spin is represented by the *least* significant bit.
 Then you can use `GenericSymmetry(f, L)` where `L` denotes the order of your symmtry.
 The order is the smallest number `L` s. t. `f` applied `L` is the identity for all indices.
+
+Suppose the spatial reflection would not be implemented. You could do it yourself by defining:
+```julia
+julia> reflection(N) = bits -> parse(Int, string(bits; base=2, pad=N)[end:-1:1]; base=2)
+julia> SpatialReflection(N) = GenericSymmetry(reflection(N), 2)
+```
 
 # Implementation details
 Imagine all basis vectors as the vertices of a graph and the symmetries generate

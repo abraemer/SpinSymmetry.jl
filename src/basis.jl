@@ -2,6 +2,24 @@ abstract type ZBasis end
 
 function _indices end
 
+"""
+    basissize(basis)
+
+Return number of basis vectors in the `basis`.
+
+See:
+- [`zbasis`](@ref)
+- [`symmetrized_basis`](@ref)
+"""
+function basissize end
+
+"""
+    FullZBasis(N)
+
+Represents the states of a system of N.
+
+See also: [`zbasis`](@ref)
+"""
 struct FullZBasis <: ZBasis
     N::Int
     FullZBasis(N) = N > 0 ? new(N) : throw(ArgumentError("N=$N needs to be a positive integer!"))
@@ -9,6 +27,15 @@ end
 
 _indices(fzb::FullZBasis) = 1:2^fzb.N
 
+basissize(fzb::FullZBasis) = 2^fzb.N
+
+"""
+    ZBlockBasis(N, k)
+
+Represents the states of a system of N spins whith k |↑⟩ (magnetization = (k-N)/2).
+
+See also: [`zbasis`](@ref)
+"""
 struct ZBlockBasis <: ZBasis
     N::Int
     k::Int
@@ -29,6 +56,14 @@ function _indices(zbb::ZBlockBasis)
     return inds
 end
 
+basissize(zbb::ZBlockBasis) = binomial(zbb.N, zbb.k)
+
+"""
+    zbasis(N[, k])
+
+Represent a full z-basis for N spins. If k is provided, this represents only the block
+with k |↑⟩ (so magnetization of (k-N)/2).
+"""
 zbasis(N) = FullZBasis(N)
 zbasis(N, k) = ZBlockBasis(N, k)
 
@@ -53,12 +88,25 @@ function _zblock_inds!(states, N, k)
     end
 end
 
+"""
+    SymmetrizedBasis
+
+Not intended for direct use. See [`symmetrized_basis`](@ref).
+"""
 struct SymmetrizedBasis
     basis::ZBasis
     symmetries::Vector{AbstractSymmetry}
     sectors::Vector{Int}
 end
 
+"""
+    symmetrized_basis(N[, k], symmetry, sector, more...)
+    symmetrized_basis(zbasis, symmetry, sector, more...)
+
+Construct a basis in the specified symmetry sectors. Any number of symmetries may be specified.
+
+Either provide number of spins (and optionally `k` block) or a [`zbasis`](@ref).
+"""
 function symmetrized_basis(N::Int, symmetry::AbstractSymmetry, sector::Int, more...)
     symmetrized_basis(zbasis(N), symmetry, sector, more...)
 end
@@ -72,9 +120,19 @@ function symmetrized_basis(zbasis::ZBasis, symmetry::AbstractSymmetry, sector::I
     SymmetrizedBasis(zbasis, [symmetry, more[1:2:end]...], [sector, more[2:2:end]...])
 end
 
+basissize(basis::SymmetrizedBasis) = length(_phase_factors(_indices(basis.basis), basis.symmetries, basis.sectors))
 
 symmetrize_state(state, args...) = symmetrize_state(state, symmetrized_basis(args...))
 
+"""
+    symmetrize_state(state, basis)
+    symmetrize_state(state, args...)
+
+Symmetrize the given `state` into the symmetric sector specified by the [`symmetrized_basis`](@ref).
+
+Alternatively, provide everything needed to construct the [`symmetrized_basis`](@ref) and
+will be constructed internally.
+"""
 function symmetrize_state(state, basis::SymmetrizedBasis)
     if length(state) != 2^basis.basis.N
         throw(ArgumentError("""State has wrong size.
@@ -97,6 +155,15 @@ end
 
 symmetrize_operator(operator, args...) = symmetrize_operator(operator, symmetrized_basis(args...))
 
+"""
+    symmetrize_operator(operator, basis)
+    symmetrize_operator(operator, args...)
+
+Symmetrize the given `operator` into the symmetric sector specified by the [`symmetrized_basis`](@ref).
+
+Alternatively, provide everything needed to construct the [`symmetrized_basis`](@ref) and
+will be constructed internally.
+"""
 function symmetrize_operator(operator, basis::SymmetrizedBasis)
     if length(operator) != 4^basis.basis.N || size(operator, 1) != size(operator, 2)
         throw(ArgumentError("""Operator has wrong size.
