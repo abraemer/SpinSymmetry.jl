@@ -3,6 +3,17 @@ abstract type ZBasis end
 function _indices end
 
 """
+    basissize(basis)
+
+Return number of basis vectors in the `basis`.
+
+See:
+- [`zbasis`](@ref)
+- [`symmetrized_basis`](@ref)
+"""
+function basissize end
+
+"""
     FullZBasis(N)
 
 Represents the states of a system of N.
@@ -15,6 +26,8 @@ struct FullZBasis <: ZBasis
 end
 
 _indices(fzb::FullZBasis) = 1:2^fzb.N
+
+basissize(fzb::FullZBasis) = 2^fzb.N
 
 """
     ZBlockBasis(N, k)
@@ -42,6 +55,8 @@ function _indices(zbb::ZBlockBasis)
     _zblock_inds!(inds, N, k)
     return inds
 end
+
+basissize(zbb::ZBlockBasis) = binomial(zbb.N, zbb.k)
 
 """
     zbasis(N[, k])
@@ -105,6 +120,7 @@ function symmetrized_basis(zbasis::ZBasis, symmetry::AbstractSymmetry, sector::I
     SymmetrizedBasis(zbasis, [symmetry, more[1:2:end]...], [sector, more[2:2:end]...])
 end
 
+basissize(basis::SymmetrizedBasis) = length(_phase_factors(_indices(basis.basis), basis.symmetries, basis.sectors))
 
 symmetrize_state(state, args...) = symmetrize_state(state, symmetrized_basis(args...))
 

@@ -27,6 +27,22 @@
         end
     end
 
+    @testset "basissize" begin
+        let basis = zbasis(10)
+            @test basissize(basis) == length(SpinSymmetry._indices(basis))
+        end
+
+        for k in 0:10
+            let basis = zbasis(10, k)
+                @test basissize(basis) == length(SpinSymmetry._indices(basis))
+            end
+        end
+
+        @test basissize(symmetrized_basis(10, Flip(10), 0)) == 2^9
+        @test basissize(symmetrized_basis(10, 5,  Flip(10), 0)) == binomial(10, 5)/2
+        @test basissize(symmetrized_basis(10, 4,  Flip(10), 0)) == binomial(10, 4)
+    end
+
     @testset "symmetrize stuff" begin
         using LinearAlgebra, Random
         Random.seed!(5)
