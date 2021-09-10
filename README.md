@@ -51,6 +51,7 @@ julia> @btime symm_op = symmetrize_operator(operator, basis)
 # Features
 - Use `symmetrized_basis` to construct a collection of your symmetries. Provide as the first argument the system's size (and optionally magnetizaion block) and then follow with symmetry operations and their sector alternating.
 - Apply the symmetries to a state or an operator using `symmetrize_state` and `symmetrize_operator`
+- Find the size of the symmetry sector with `basissize`
 
 The symmetry operations supported are:
 - z-magnetization block (via `zbasis(N, k)`)
@@ -61,7 +62,7 @@ The symmetry operations supported are:
 
 where `N` denotes the number of spins in the system and their positions should be given as a Julian index, i.e. in the range `1:N`.
 
-**Note:** The projection on a specific magnetization block is applied first. Thus if you have spin flip symmetry and restrict to a magnetization block, your symmetrized basis states look like "|↑..↑⟩ ± |↓..↑⟩".
+**Note:** The projection on a specific magnetization block is applied first. Thus if you have spin flip symmetry and restrict to a magnetization block, your symmetrized basis states look like "|↑..↑⟩ ± |↓..↑⟩". So in this case you effectively specified S_z^2 and parity.
 
 ## User-defined symmetries
 It's also quite easy to define your own symmetry operations. 
