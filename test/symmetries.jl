@@ -19,6 +19,11 @@
     @testset "Shift" begin
         # test default arg
         @test Shift(10) == Shift(10,1)
+        @test Shift(10,-1) == Shift(10,9)
+
+        @test hash(Shift(5, 3)) == hash(Shift(5, 3))
+        @test hash(Shift(5, 3)) == hash(Shift(5, 8))
+        @test hash(Shift(5, 3)) != hash(Shift(5, 4))
 
         # small correctness test
         @test Shift(2).(0:3) == [0,2,1,3]
@@ -40,6 +45,11 @@
         # test default arg
         @test Flip(10) == Flip(collect(1:10))
 
+        @test Flip(10) == Flip(10)
+        @test Flip(9) != Flip(10)
+        @test hash(Flip(10)) == hash(Flip(10))
+        @test hash(Flip(9)) != hash(Flip(10))
+
         # small correctness test
         @test Flip(2).(0:3) == [3,2,1,0]
         @test Flip([1,2]).(0:7) == vcat([3,2,1,0], 4 .+ [3,2,1,0])
@@ -60,6 +70,14 @@
         @test Swap(1,2).(0:3) == [0,2,1,3]
         @test Swap(2,2).(0:31) == 0:31 # identity
 
+        @test Swap(1,2) == Swap(1,2)
+        @test Swap(1,2) == Swap(2,1)
+        @test Swap(1,2) != Swap(3,2)
+        @test hash(Swap(1,2)) == hash(Swap(1,2))
+        @test hash(Swap(1,2)) == hash(Swap(2,1))
+        @test hash(Swap(1,2)) != hash(Swap(3,2))
+
+
         # injectivity test
         for (p1,p2) in [(1,2), (3,4), (1,4), (9,6), (1,9), (5,5), (3,7)]
             @test length(Set(Swap(p1, p2).(0:2^10-1))) == 2^10
@@ -79,6 +97,11 @@
         # small correctness test
         @test SpatialReflection(2).(0:3) == [0,2,1,3]
 
+        @test SpatialReflection(2) == SpatialReflection(2)
+        @test SpatialReflection(2) != SpatialReflection(3)
+        @test hash(SpatialReflection(2)) == hash(SpatialReflection(2))
+        @test hash(SpatialReflection(2)) != hash(SpatialReflection(3))
+
         # injectivity test
         @test length(Set(SpatialReflection(10).(0:2^10-1))) == 2^10
 
@@ -94,8 +117,16 @@
     @testset "GenericSymmetry" begin
         symm = GenericSymmetry(identity, 1)
 
+        @test GenericSymmetry(identity, 1) == GenericSymmetry(identity, 1)
+        @test GenericSymmetry(identity, 1) != GenericSymmetry(+, 1)
+        @test GenericSymmetry(identity, 1) != GenericSymmetry(identity, 2)
+        @test hash(GenericSymmetry(identity, 1)) == hash(GenericSymmetry(identity, 1))
+        @test hash(GenericSymmetry(identity, 1)) != hash(GenericSymmetry(+, 1))
+        @test hash(GenericSymmetry(identity, 1)) != hash(GenericSymmetry(identity, 2))
+
         @test symm.(0:255) == 0:255
         @test SpinSymmetry._order(symm) == 1
+        @test order_test(symm, 1)
     end
 
 end

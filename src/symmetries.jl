@@ -10,7 +10,7 @@ Shift operator. Optionally specify the distance to shift (default: 1).
 struct Shift <: AbstractSymmetry
     N::Int
     amount::Int
-    Shift(N, k=1) = new(N, k)
+    Shift(N, k=1) = new(N, mod(k, N))
 end
 
 _order(s::Shift) = div(s.N, gcd(s.N, s.amount))

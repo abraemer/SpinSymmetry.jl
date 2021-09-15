@@ -4,6 +4,11 @@
             @test_throws ArgumentError zbasis(-1)
             @test zbasis(5) isa FullZBasis
             @test SpinSymmetry._indices(zbasis(5)) == 1:2^5
+
+            @test zbasis(5) == FullZBasis(5)
+            @test zbasis(6) != FullZBasis(5)
+            @test hash(zbasis(5)) == hash(FullZBasis(5))
+            @test hash(zbasis(6)) != hash(FullZBasis(5))
         end
 
         @testset "ZBlockBasis" begin
@@ -12,6 +17,13 @@
             @test_throws ArgumentError zbasis(2,3)
 
             @test zbasis(2,1) isa ZBlockBasis
+
+            @test zbasis(5,2) == ZBlockBasis(5,2)
+            @test zbasis(6,2) != ZBlockBasis(5,2)
+            @test zbasis(6,3) != ZBlockBasis(6,2)
+            @test hash(zbasis(5,2)) == hash(ZBlockBasis(5,2))
+            @test hash(zbasis(6,2)) != hash(ZBlockBasis(5,2))
+            @test hash(zbasis(6,3)) != hash(ZBlockBasis(6,2))
 
             # small correctness check
             @test SpinSymmetry._indices(zbasis(2,0)) == [1]
@@ -24,6 +36,24 @@
                 zblock = zbasis(10, k)
                 @test all(digitsum.(SpinSymmetry._indices(zblock)) .== k)
             end
+        end
+    end
+
+    @testset "symmetrized_basis" begin
+        # different argument forms
+        @test symmetrized_basis(zbasis(6), Flip(6), 0) == symmetrized_basis(6, Flip(6), 0)
+        @test symmetrized_basis(zbasis(6, 2), Flip(6), 0) == symmetrized_basis(6, 2, Flip(6), 0)
+
+        # equality
+        @test symmetrized_basis(6, Flip(6), 0, Shift(6), 1) == symmetrized_basis(6, Shift(6), 1, Flip(6), 0)
+        @test symmetrized_basis(6, Flip(6), 0, Shift(6, 5), 1) == symmetrized_basis(6, Shift(6, -1), 1, Flip(6), 0)
+        @test symmetrized_basis(6, Flip(6), 0, Shift(6), 0) != symmetrized_basis(6, Shift(6), 1, Flip(6), 0)
+        @test symmetrized_basis(6, Flip(6), 1, Shift(6), 0) != symmetrized_basis(6, Shift(6), 1, Flip(6), 0)
+
+        let b1 = symmetrized_basis(6, Flip(6), 0, Shift(6), 1),
+            b2 = symmetrized_basis(6, Shift(6), 1, Flip(6), 0)
+            @test SpinSymmetry._phase_factors(1:2^6, b1.symmetries, b1.sectors)  ==
+                SpinSymmetry._phase_factors(1:2^6, b2.symmetries, b2.sectors)
         end
     end
 
