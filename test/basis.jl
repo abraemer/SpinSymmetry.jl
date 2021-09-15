@@ -39,6 +39,24 @@
         end
     end
 
+    @testset "symmetrized_basis" begin
+        # different argument forms
+        @test symmetrized_basis(zbasis(6), Flip(6), 0) == symmetrized_basis(6, Flip(6), 0)
+        @test symmetrized_basis(zbasis(6, 2), Flip(6), 0) == symmetrized_basis(6, 2, Flip(6), 0)
+
+        # equality
+        @test symmetrized_basis(6, Flip(6), 0, Shift(6), 1) == symmetrized_basis(6, Shift(6), 1, Flip(6), 0)
+        @test symmetrized_basis(6, Flip(6), 0, Shift(6, 5), 1) == symmetrized_basis(6, Shift(6, -1), 1, Flip(6), 0)
+        @test symmetrized_basis(6, Flip(6), 0, Shift(6), 0) != symmetrized_basis(6, Shift(6), 1, Flip(6), 0)
+        @test symmetrized_basis(6, Flip(6), 1, Shift(6), 0) != symmetrized_basis(6, Shift(6), 1, Flip(6), 0)
+
+        let b1 = symmetrized_basis(6, Flip(6), 0, Shift(6), 1),
+            b2 = symmetrized_basis(6, Shift(6), 1, Flip(6), 0)
+            @test SpinSymmetry._phase_factors(1:2^6, b1.symmetries, b1.sectors)  ==
+                SpinSymmetry._phase_factors(1:2^6, b2.symmetries, b2.sectors)
+        end
+    end
+
     @testset "basissize" begin
         let basis = zbasis(10)
             @test basissize(basis) == length(SpinSymmetry._indices(basis))
