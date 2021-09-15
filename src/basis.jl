@@ -29,6 +29,9 @@ _indices(fzb::FullZBasis) = 1:2^fzb.N
 
 basissize(fzb::FullZBasis) = 2^fzb.N
 
+Base.:(==)(fzb1::FullZBasis, fzb2::FullZBasis) = fzb1.N == fzb2.N
+Base.hash(fzb::FullZBasis, h::UInt) = hash(fzb.N, h)
+
 """
     ZBlockBasis(N, k)
 
@@ -57,6 +60,10 @@ function _indices(zbb::ZBlockBasis)
 end
 
 basissize(zbb::ZBlockBasis) = binomial(zbb.N, zbb.k)
+
+Base.:(==)(zbb1::ZBlockBasis, zbb2::ZBlockBasis) = (zbb1.N == zbb2.N) && (zbb1.k == zbb2.k)
+Base.hash(zbb::ZBlockBasis, h::UInt) = hash(zbb.k, hash(zbb.N, h))
+
 
 """
     zbasis(N[, k])
@@ -121,6 +128,19 @@ function symmetrized_basis(zbasis::ZBasis, symmetry::AbstractSymmetry, sector::I
 end
 
 basissize(basis::SymmetrizedBasis) = length(_phase_factors(_indices(basis.basis), basis.symmetries, basis.sectors))
+
+## inspired from Base.hash(::Set)
+const hashs_seed_basis = UInt === UInt64 ? 0x19a9284a71d03209 : 0x597bef25
+Base.:(==)(sb1::SymmetrizedBasis, sb2::SymmetrizedBasis) = hash(sb1) == hash(sb2)
+function Base.hash(sb::SymmetrizedBasis, h::UInt)
+    hv = hashs_seed_basis
+    hv ⊻= hash(sb.basis)
+    # order of symmetries is not important
+    for s in zip(sb.symmetries, sb.sectors)
+        hv ⊻= hash(s)
+    end
+    return hash(hv, h)
+end
 
 symmetrize_state(state, args...) = symmetrize_state(state, symmetrized_basis(args...))
 

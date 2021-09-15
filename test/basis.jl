@@ -4,6 +4,11 @@
             @test_throws ArgumentError zbasis(-1)
             @test zbasis(5) isa FullZBasis
             @test SpinSymmetry._indices(zbasis(5)) == 1:2^5
+
+            @test zbasis(5) == FullZBasis(5)
+            @test zbasis(6) != FullZBasis(5)
+            @test hash(zbasis(5)) == hash(FullZBasis(5))
+            @test hash(zbasis(6)) != hash(FullZBasis(5))
         end
 
         @testset "ZBlockBasis" begin
@@ -12,6 +17,13 @@
             @test_throws ArgumentError zbasis(2,3)
 
             @test zbasis(2,1) isa ZBlockBasis
+
+            @test zbasis(5,2) == ZBlockBasis(5,2)
+            @test zbasis(6,2) != ZBlockBasis(5,2)
+            @test zbasis(6,3) != ZBlockBasis(6,2)
+            @test hash(zbasis(5,2)) == hash(ZBlockBasis(5,2))
+            @test hash(zbasis(6,2)) != hash(ZBlockBasis(5,2))
+            @test hash(zbasis(6,3)) != hash(ZBlockBasis(6,2))
 
             # small correctness check
             @test SpinSymmetry._indices(zbasis(2,0)) == [1]

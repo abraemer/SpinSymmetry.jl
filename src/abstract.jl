@@ -37,3 +37,17 @@ function _order end
 # Act as a scalar for broadcasting.
 # Since a symmetry behaves like a function object, this enables standard broadcasting.
 Base.Broadcast.broadcastable(as::AbstractSymmetry) = Ref(as)
+
+Base.:(==)(symm1::T, symm2::T) where T<:AbstractSymmetry = hash(symm1) == hash(symm2)
+
+const hashs_seed_symmetry = UInt === UInt64 ? 0xcd254b02e510da2d : 0x2d61926b
+## Note that this hash function is independent on the order of fields
+## This means that Swap(1,2) and Swap(2,1) are considered identically - which is correct I think
+function Base.hash(symm::AbstractSymmetry, h::UInt)
+    hv = hashs_seed_symmetry
+    fields = fieldnames(typeof(symm))
+    for f in fields
+        hv ⊻= hash(getfield(symm, f))
+    end
+    return hash(hv, h)
+end
