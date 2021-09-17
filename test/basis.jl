@@ -41,6 +41,9 @@
 
     @testset "symmetrized_basis" begin
         # different argument forms
+        @test symmetrized_basis(6) == symmetrized_basis(zbasis(6))
+        @test symmetrized_basis(6, 2) == symmetrized_basis(zbasis(6, 2))
+        @test symmetrized_basis(6) isa SymmetrizedBasis
         @test symmetrized_basis(zbasis(6), Flip(6), 0) == symmetrized_basis(6, Flip(6), 0)
         @test symmetrized_basis(zbasis(6, 2), Flip(6), 0) == symmetrized_basis(6, 2, Flip(6), 0)
 
@@ -86,14 +89,10 @@
         front = 1:mid
         back = 2^N:-1:mid+1
 
-        function compare_bases(b1, b2)
-            return all(SpinSymmetry._indices(b1.basis) .== SpinSymmetry._indices(b2.basis)) &&
-                   all(b1.symmetries .== b2. symmetries) &&
-                   all(b1.sectors .== b2.sectors)
-        end
-
-        @test compare_bases(base, symmetrized_basis(zbasis(N), Flip(N), 0))
-        @test compare_bases(symmetrized_basis(zbasis(N,1), Flip(N), 1), symmetrized_basis(N, 1, Flip(N), 1))
+        @test symmetrize_state(state, symmetrized_basis(N, 0)) ≈ [state[1]]
+        @test symmetrize_state(state, zbasis(N, N)) ≈ [state[end]]
+        @test symmetrize_operator(operator, symmetrized_basis(N, 0)) ≈ [operator[1,1]]
+        @test symmetrize_operator(operator, zbasis(N, N)) ≈ [operator[end, end]]
 
         symm_state = symmetrize_state(state, base)
         @test symm_state ≈ symmetrize_state(state, N, Flip(N), 0)

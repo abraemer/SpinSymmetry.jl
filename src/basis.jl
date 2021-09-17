@@ -107,8 +107,8 @@ struct SymmetrizedBasis
 end
 
 """
-    symmetrized_basis(N[, k], symmetry, sector, more...)
-    symmetrized_basis(zbasis, symmetry, sector, more...)
+    symmetrized_basis(N[, k], [symmetry, sector, more...])
+    symmetrized_basis(zbasis, [symmetry, sector, more...])
 
 Construct a basis in the specified symmetry sectors. Any number of symmetries may be specified.
 
@@ -117,6 +117,10 @@ Either provide number of spins (and optionally `k` block) or a [`zbasis`](@ref).
 function symmetrized_basis(N::Int, symmetry::AbstractSymmetry, sector::Int, more...)
     symmetrized_basis(zbasis(N), symmetry, sector, more...)
 end
+
+symmetrized_basis(N::Int) = SymmetrizedBasis(zbasis(N), [], [])
+symmetrized_basis(N::Int, k::Int) = SymmetrizedBasis(zbasis(N, k), [], [])
+symmetrized_basis(zbasis::ZBasis) = SymmetrizedBasis(zbasis, [], [])
 
 function symmetrized_basis(N::Int, k::Int, symmetry::AbstractSymmetry, sector::Int, more...)
     symmetrized_basis(zbasis(N, k), symmetry, sector, more...)
