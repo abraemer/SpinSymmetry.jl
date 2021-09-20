@@ -165,14 +165,20 @@ function symmetrize_state(state, basis::SymmetrizedBasis)
 
     inds = _indices(basis.basis)
     factors = _phase_factors(inds, basis.symmetries, basis.sectors)
-    result = Vector{ComplexF64}(undef, length(factors))
+    use_real = all(d -> all(denominator.(values(d)) .<= 2), factors)
+    res_eltype = float(use_real ? eltype(state) : complex(eltype(state)))
+    result = similar(state, res_eltype, length(factors))
 
     for (i, component) in enumerate(factors)
-        tmp = ComplexF64(0)
+        tmp = zero(ComplexF64)
         for (index, phase) in component
             tmp += exp(im*2π*phase)*state[index]
         end
-        result[i] = tmp / √(length(component))
+        if use_real
+            result[i] = real(tmp / √(length(component)))
+        else
+            result[i] = tmp / √(length(component))
+        end
     end
     return result
 end
@@ -195,17 +201,23 @@ function symmetrize_operator(operator, basis::SymmetrizedBasis)
     end
     inds = _indices(basis.basis)
     factors = _phase_factors(inds, basis.symmetries, basis.sectors)
-    result = Matrix{ComplexF64}(undef, length(factors), length(factors))
+    use_real = all(d -> all(denominator.(values(d)) .<= 2), factors)
+    res_eltype = float(use_real ? eltype(operator) : complex(eltype(operator)))
+    result = similar(operator, res_eltype, length(factors), length(factors))
 
     for (j, component2) in enumerate(factors)
         for (i, component1) in enumerate(factors)
-            tmp = ComplexF64(0)
+            tmp = zero(ComplexF64)
             for (index2, phase2) in component2
                 for (index1, phase1) in component1
                     tmp += exp(im*2π*(phase1 - phase2))*operator[index1, index2]
                 end
             end
-            result[i,j] = tmp / √(length(component1)) / √(length(component2))
+            if use_real
+                result[i,j] = real(tmp / √(length(component1)) / √(length(component2)))
+            else
+                result[i,j] = tmp / √(length(component1)) / √(length(component2))
+            end
         end
     end
     return result

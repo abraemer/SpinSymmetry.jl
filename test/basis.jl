@@ -77,8 +77,34 @@
     end
 
     @testset "symmetrize stuff" begin
-        using LinearAlgebra, Random
+        using LinearAlgebra, Random, SparseArrays
         Random.seed!(5)
+
+        @testset "return types" begin
+            N = 11
+
+            real_basis1 = zbasis(N, div(N-1, 2))
+            real_basis2 = symmetrized_basis(N, Shift(N), 0)
+            complex_basis = symmetrized_basis(N, Shift(N), 1)
+            σz = spdiagm([1,-1])
+            make_op(op, N) = sum(kron(kron(I(2^(N-i)), op), I(2^(i-1))) for i in 1:N)
+            op = make_op(σz, N)
+
+            for (op, should_be_sparse) in ((op, true), (Matrix(op), false))
+                let symm = symmetrize_operator(op, real_basis1)
+                    @test issparse(symm) == should_be_sparse
+                    @test eltype(symm) <: Real
+                end
+                let symm = symmetrize_operator(op, real_basis2)
+                    @test issparse(symm) == should_be_sparse
+                    @test eltype(symm) <: Real
+                end
+                let symm = symmetrize_operator(op, complex_basis)
+                    @test issparse(symm) == should_be_sparse
+                    @test eltype(symm) <: Complex
+                end
+            end
+        end
 
         N = 5
 
