@@ -162,25 +162,25 @@ function symmetrize_state(state, basis::SymmetrizedBasis)
         throw(ArgumentError("""State has wrong size.
             Expected $(2^basis.basis.N), got: $(length(state))"""))
     end
+    return _transformationmatrix(basis) * state
+    # inds = _indices(basis.basis)
+    # factors = _phase_factors(inds, basis.symmetries, basis.sectors)
+    # use_real = all(d -> all(denominator.(values(d)) .<= 2), factors)
+    # res_eltype = float(use_real ? eltype(state) : complex(eltype(state)))
+    # result = similar(state, res_eltype, length(factors))
 
-    inds = _indices(basis.basis)
-    factors = _phase_factors(inds, basis.symmetries, basis.sectors)
-    use_real = all(d -> all(denominator.(values(d)) .<= 2), factors)
-    res_eltype = float(use_real ? eltype(state) : complex(eltype(state)))
-    result = similar(state, res_eltype, length(factors))
-
-    for (i, component) in enumerate(factors)
-        tmp = zero(ComplexF64)
-        for (index, phase) in component
-            tmp += exp(im*2π*phase)*state[index]
-        end
-        if use_real
-            result[i] = real(tmp / √(length(component)))
-        else
-            result[i] = tmp / √(length(component))
-        end
-    end
-    return result
+    # for (i, component) in enumerate(factors)
+    #     tmp = zero(ComplexF64)
+    #     for (index, phase) in component
+    #         tmp += exp(im*2π*phase)*state[index]
+    #     end
+    #     if use_real
+    #         result[i] = real(tmp / √(length(component)))
+    #     else
+    #         result[i] = tmp / √(length(component))
+    #     end
+    # end
+    # return result
 end
 
 symmetrize_operator(operator, args...) = symmetrize_operator(operator, symmetrized_basis(args...))
@@ -199,30 +199,34 @@ function symmetrize_operator(operator, basis::SymmetrizedBasis)
         throw(ArgumentError("""Operator has wrong size.
             Expected $(2^basis.basis.N)x$(2^basis.basis.N), got: $(size(operator))"""))
     end
-    inds = _indices(basis.basis)
-    factors = _phase_factors(inds, basis.symmetries, basis.sectors)
-    use_real = all(d -> all(denominator.(values(d)) .<= 2), factors)
-    res_eltype = float(use_real ? eltype(operator) : complex(eltype(operator)))
-    result = similar(operator, res_eltype, length(factors), length(factors))
 
-    for (j, component2) in enumerate(factors)
-        for (i, component1) in enumerate(factors)
-            tmp = zero(ComplexF64)
-            for (index2, phase2) in component2
-                for (index1, phase1) in component1
-                    tmp += exp(im*2π*(phase1 - phase2))*operator[index1, index2]
-                end
-            end
-            if use_real
-                result[i,j] = real(tmp / √(length(component1)) / √(length(component2)))
-            else
-                result[i,j] = tmp / √(length(component1)) / √(length(component2))
-            end
-        end
-    end
-    return result
+    trafo = _transformationmatrix(basis)
+
+    return trafo * operator * trafo'
+
+    # inds = _indices(basis.basis)
+    # factors = _phase_factors(inds, basis.symmetries, basis.sectors)
+    # use_real = all(d -> all(denominator.(values(d)) .<= 2), factors)
+    # res_eltype = float(use_real ? eltype(operator) : complex(eltype(operator)))
+    # result = similar(operator, res_eltype, length(factors), length(factors))
+
+    # for (j, component2) in enumerate(factors)
+    #     for (i, component1) in enumerate(factors)
+    #         tmp = zero(ComplexF64)
+    #         for (index2, phase2) in component2
+    #             for (index1, phase1) in component1
+    #                 tmp += exp(im*2π*(phase1 - phase2))*operator[index1, index2]
+    #             end
+    #         end
+    #         if use_real
+    #             result[i,j] = real(tmp / √(length(component1)) / √(length(component2)))
+    #         else
+    #             result[i,j] = tmp / √(length(component1)) / √(length(component2))
+    #         end
+    #     end
+    # end
+    # return result
 end
-
 
 function _compatible(d1, d2)
     common_keys = intersect(keys(d1), keys(d2))
@@ -297,4 +301,30 @@ function _phase_factors(inds, symms, sectors)
         lives && push!(output, out)
     end
     output
+end
+
+SparseArrays.sparse(symmbasis::SymmetrizedBasis) = _transformationmatrix(symmbasis)
+function _transformationmatrix(symmbasis)
+	inds = SpinSymmetry._indices(symmbasis.basis)
+	phases = SpinSymmetry._phase_factors(inds, symmbasis.symmetries, symmbasis.sectors)
+
+    ## Could optimize by extracting another function
+    ## That dispatches on use_real
+    use_real = all(d -> all(denominator.(values(d)) .<= 2), phases)
+
+	L = sum(length, phases)
+	I = zeros(Int, L)
+	J = zeros(Int, L)
+	V = zeros(use_real ? Float64 : ComplexF64, L)
+	index = 1
+	for (i, component) in enumerate(phases)
+        norm = 1 / √length(component)
+		for (j, phase) in component
+			I[index] = i
+			J[index] = j
+			V[index] = norm * (use_real ? cos(2π*phase) : exp(im*2π*phase))
+			index += 1
+		end
+	end
+	SparseArrays.sparse(I,J,V,length(phases), 2^(symmbasis.basis.N))
 end
