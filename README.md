@@ -23,28 +23,28 @@ julia> basis = symmetrized_basis(zbasis(9, 4), Flip(9), 0, Shift(9), 0);
 julia> state = normalize!(ones(2^9)); # initial state - all up in x direction
 
 julia> @btime symm_state = symmetrize_state(state, basis)
- 765.253 μs (7781 allocations: 727.29 KiB)
-14-element Vector{ComplexF64}:
- 0.18750000000000006 + 0.0im
- 0.18750000000000006 + 0.0im
- 0.18750000000000006 + 0.0im
- 0.18750000000000006 + 0.0im
- 0.18750000000000006 + 0.0im
- 0.18750000000000006 + 0.0im
- 0.18750000000000006 + 0.0im
- 0.18750000000000006 + 0.0im
- 0.18750000000000006 + 0.0im
- 0.18750000000000006 + 0.0im
- 0.18750000000000006 + 0.0im
- 0.18750000000000006 + 0.0im
- 0.18750000000000006 + 0.0im
- 0.18750000000000006 + 0.0im
+637.317 μs (4245 allocations: 646.05 KiB)
+14-element Vector{Float64}:
+ 0.18749999999999994
+ 0.18749999999999994
+ 0.18749999999999994
+ 0.18749999999999994
+ 0.18749999999999994
+ 0.18749999999999994
+ 0.18749999999999994
+ 0.18749999999999994
+ 0.18749999999999994
+ 0.18749999999999994
+ 0.18749999999999994
+ 0.18749999999999994
+ 0.18749999999999994
+ 0.18749999999999994
 
 julia> operator = kron([1 0; 0 -1], kron([1 0; 0 -1], I(2^7))); # operator Z ⊗ Z ⊗ 𝟙 ⊗ .. ⊗ 𝟙
 
 julia> @btime symm_op = symmetrize_operator(operator, basis)
- 41.828 ms (922891 allocations: 29.66 MiB)
-14×14 Matrix{ComplexF64}:
+ 1.096 ms (4248 allocations: 703.76 KiB)
+14×14 Matrix{Float64}:
 [...]
 ```
 
@@ -61,6 +61,8 @@ The symmetry operations supported are:
 - Spatial reflection via `SpatialReflection(N)`
 
 where `N` denotes the number of spins in the system and their positions should be given as a Julian index, i.e. in the range `1:N`.
+
+To get the tranformation matrix to the symmetrized subspace just use `transformationmatrix(symmetrized_basis)`.
 
 **Note:** The projection on a specific magnetization block is applied first. Thus if you have spin flip symmetry and restrict to a magnetization block, your symmetrized basis states look like "|↑..↑⟩ ± |↓..↑⟩". So in this case you effectively specified S_z^2 and parity.
 

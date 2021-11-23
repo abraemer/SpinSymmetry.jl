@@ -162,7 +162,7 @@ function symmetrize_state(state, basis::SymmetrizedBasis)
         throw(ArgumentError("""State has wrong size.
             Expected $(2^basis.basis.N), got: $(length(state))"""))
     end
-    return _transformationmatrix(basis) * state
+    return transformationmatrix(basis) * state
     # inds = _indices(basis.basis)
     # factors = _phase_factors(inds, basis.symmetries, basis.sectors)
     # use_real = all(d -> all(denominator.(values(d)) .<= 2), factors)
@@ -200,7 +200,7 @@ function symmetrize_operator(operator, basis::SymmetrizedBasis)
             Expected $(2^basis.basis.N)x$(2^basis.basis.N), got: $(size(operator))"""))
     end
 
-    trafo = _transformationmatrix(basis)
+    trafo = transformationmatrix(basis)
 
     return trafo * operator * trafo'
 
@@ -303,8 +303,7 @@ function _phase_factors(inds, symms, sectors)
     output
 end
 
-SparseArrays.sparse(symmbasis::SymmetrizedBasis) = _transformationmatrix(symmbasis)
-function _transformationmatrix(symmbasis)
+function transformationmatrix(symmbasis)
 	inds = SpinSymmetry._indices(symmbasis.basis)
 	phases = SpinSymmetry._phase_factors(inds, symmbasis.symmetries, symmbasis.sectors)
 
@@ -326,5 +325,5 @@ function _transformationmatrix(symmbasis)
 			index += 1
 		end
 	end
-	SparseArrays.sparse(I,J,V,length(phases), 2^(symmbasis.basis.N))
+	sparse(I,J,V,length(phases), 2^(symmbasis.basis.N))
 end
