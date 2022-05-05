@@ -35,7 +35,7 @@ Base.hash(fzb::FullZBasis, h::UInt) = hash(fzb.N, h)
 """
     ZBlockBasis(N, k)
 
-Represents the states of a system of N spins whith k |↑⟩ (magnetization = (k-N)/2).
+Represents the states of a system of N spins with k |↑⟩ (magnetization = k-N/2).
 
 See also: [`zbasis`](@ref)
 """
@@ -69,7 +69,7 @@ Base.hash(zbb::ZBlockBasis, h::UInt) = hash(zbb.k, hash(zbb.N, h))
     zbasis(N[, k])
 
 Represent a full z-basis for N spins. If k is provided, this represents only the block
-with k |↑⟩ (so magnetization of (k-N)/2).
+with k |↑⟩ (so magnetization of k-N/2).
 """
 zbasis(N) = FullZBasis(N)
 zbasis(N, k) = ZBlockBasis(N, k)

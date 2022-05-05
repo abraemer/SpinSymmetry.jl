@@ -64,7 +64,7 @@ where `N` denotes the number of spins in the system and their positions should b
 
 To get the tranformation matrix to the symmetrized subspace just use `transformationmatrix(symmetrized_basis)`.
 
-**Note:** The projection on a specific magnetization block is applied first. Thus if you have spin flip symmetry and restrict to a magnetization block, your symmetrized basis states look like "|↑..↑⟩ ± |↓..↑⟩". So in this case you effectively specified S_z^2 and parity.
+**Note:** The projection on a specific magnetization block is applied first. Thus if you have spin flip symmetry and restrict to a magnetization block, your symmetrized basis states look like "|↑..↑⟩ ± |↓..↓⟩". So in this case you effectively specified S_z^2 and parity.
 
 ## User-defined symmetries
 It's also quite easy to define your own symmetry operations. 
